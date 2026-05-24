@@ -84,12 +84,21 @@ class Plugin extends AppPlugin {
       const view = options.useViewFields === false || options.use_view_fields === false ? null : findFormInputView(collectionPlugin, options);
       const viewFieldIds = Array.isArray(view?.field_ids) ? view.field_ids : [];
       const explicit = viewFieldIds.length ? viewFieldIds : listOpt(options, "fieldIds", "field_ids");
-      const explicitSet = new Set(explicit.map(lc).filter(Boolean));
+      const fields = (collectionPlugin.getConfiguration().fields || []).filter((field) => field.active !== false && !field.read_only);
 
-      return (collectionPlugin.getConfiguration().fields || []).filter((field) => {
-        if (field.active === false || field.read_only) return false;
-        if (!explicitSet.size) return true;
-        return explicitSet.has(lc(field.id)) || explicitSet.has(lc(labelOf(field)));
+      if (!explicit.length) return fields;
+
+      const fieldsByKey = new Map();
+      fields.forEach((field) => {
+        fieldsByKey.set(lc(field.id), field);
+        fieldsByKey.set(lc(labelOf(field)), field);
+      });
+
+      const seen = new Set();
+      return explicit.map((key) => fieldsByKey.get(lc(key))).filter((field) => {
+        if (!field || seen.has(field.id)) return false;
+        seen.add(field.id);
+        return true;
       });
     };
 

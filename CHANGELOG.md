@@ -5,6 +5,7 @@
 - Changed default view label to `Create $collection_name`.
 - Removed duplicate legacy Create/Form Input views during live deployment.
 - Added installer cleanup for old Create/Form Input view labels.
+- Preserved custom view field order when rendering form inputs.
 
 ## 0.2.0 - 2026-05-24
 
