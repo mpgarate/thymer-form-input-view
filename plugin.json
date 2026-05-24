@@ -1,10 +1,10 @@
 {
   "ver": 1,
-  "name": "Create View Type",
+  "name": "Form Input View",
   "icon": "ti-plus",
   "off": false,
   "item_name": "Note",
-  "description": "Shared Create form view type for Thymer collections.",
+  "description": "Shared form input view for Thymer collections.",
   "show_sidebar_items": true,
   "show_cmdpal_items": true,
   "views": [],
@@ -19,29 +19,13 @@
   },
   "custom": {
     "auto_install": true,
-    "createView": {
-      "viewId": "create",
-      "viewLabel": "Create",
+    "formInputView": {
+      "viewId": "form_input",
+      "viewLabel": "Create $collection_name",
       "viewIcon": "ti-plus",
       "submitLabel": "Create",
       "useViewFields": true,
       "allowInlineChoices": true,
-      "hiddenFields": [
-        "title",
-        "Title",
-        "collection",
-        "Collection",
-        "banner",
-        "Banner",
-        "created_at",
-        "Created",
-        "updated_at",
-        "Modified",
-        "tags",
-        "Tags",
-        "icon",
-        "Icon"
-      ],
       "defaults": {
         "title": "timestamp",
         "collection": "collectionName",
