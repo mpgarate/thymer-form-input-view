@@ -1,0 +1,58 @@
+{
+  "ver": 1,
+  "name": "Create View Type",
+  "icon": "ti-plus",
+  "off": false,
+  "item_name": "Note",
+  "description": "Shared Create form view type for Thymer collections.",
+  "show_sidebar_items": true,
+  "show_cmdpal_items": true,
+  "views": [],
+  "fields": [],
+  "page_field_ids": [],
+  "sidebar_record_sort_field_id": "updated_at",
+  "sidebar_record_sort_dir": "desc",
+  "managed": {
+    "fields": false,
+    "views": false,
+    "sidebar": false
+  },
+  "custom": {
+    "auto_install": true,
+    "createView": {
+      "viewId": "create",
+      "viewLabel": "Create",
+      "viewIcon": "ti-plus",
+      "submitLabel": "Create",
+      "useViewFields": true,
+      "allowInlineChoices": true,
+      "hiddenFields": [
+        "title",
+        "Title",
+        "collection",
+        "Collection",
+        "banner",
+        "Banner",
+        "created_at",
+        "Created",
+        "updated_at",
+        "Modified",
+        "tags",
+        "Tags",
+        "icon",
+        "Icon"
+      ],
+      "defaults": {
+        "title": "timestamp",
+        "collection": "collectionName",
+        "banner": "blank",
+        "tags": "blank"
+      }
+    }
+  },
+  "home": false,
+  "type": "plugin",
+  "permissions": [
+    "collections"
+  ]
+}
