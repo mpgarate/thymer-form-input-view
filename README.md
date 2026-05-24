@@ -9,9 +9,10 @@ The plugin installs a collection bootstrap and a collection-specific custom view
 1. Create a global Thymer app plugin in `Plugins -> Create Plugin`.
 2. Paste `plugin.json` into the `Configuration` tab.
 3. Paste `plugin.js` into the `Custom Code` tab.
-4. Save the plugin.
-5. Run `Install Form Input View in Collections` from the command palette.
-6. Open each collection's `Create $collection_name` custom view settings and choose the visible fields.
+4. Paste `plugin.css` into the `Custom CSS` tab.
+5. Save the plugin.
+6. Run `Install Form Input View in Collections` from the command palette.
+7. Open each collection's `Create $collection_name` custom view settings and choose the visible fields.
 
 Collections need a collection plugin context for custom views. The installer adds a minimal bootstrap when needed.
 

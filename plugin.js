@@ -218,12 +218,11 @@ class Plugin extends AppPlugin {
 
     const createControl = (field, options) => {
       const label = document.createElement("label");
-      label.style.display = "grid";
-      label.style.gap = "6px";
+      label.className = "thymer-form-input-view__field";
 
       const title = document.createElement("span");
       title.textContent = labelOf(field);
-      title.style.fontWeight = "600";
+      title.className = "thymer-form-input-view__label";
       label.appendChild(title);
 
       let input;
@@ -258,9 +257,7 @@ class Plugin extends AppPlugin {
       }
 
       input.dataset.fieldId = field.id;
-      input.style.width = "100%";
-      input.style.boxSizing = "border-box";
-      input.style.minHeight = field.type === "choice" && field.many ? "110px" : "36px";
+      input.className = "thymer-form-input-view__control";
       label.appendChild(input);
       return label;
     };
@@ -311,30 +308,26 @@ class Plugin extends AppPlugin {
       root.replaceChildren();
 
       const wrapper = document.createElement("div");
-      wrapper.style.maxWidth = "720px";
-      wrapper.style.padding = "20px 0";
+      wrapper.className = "thymer-form-input-view";
 
       const form = document.createElement("form");
-      form.style.display = "grid";
-      form.style.gap = "14px";
+      form.className = "thymer-form-input-view__form";
 
       const fields = getFormFields(collectionPlugin, options);
       fields.forEach((field) => form.appendChild(createControl(field, options)));
 
       const actions = document.createElement("div");
-      actions.style.display = "flex";
-      actions.style.alignItems = "center";
-      actions.style.gap = "12px";
+      actions.className = "thymer-form-input-view__actions";
 
       const submit = document.createElement("button");
       submit.type = "submit";
       submit.textContent = options.submitLabel || options.submit_label || "Create";
-      submit.style.minHeight = "36px";
-      submit.style.padding = "0 14px";
+      submit.className = "thymer-form-input-view__submit";
       actions.appendChild(submit);
 
       const statusEl = document.createElement("span");
       statusEl.setAttribute("role", "status");
+      statusEl.className = "thymer-form-input-view__status";
       actions.appendChild(statusEl);
       form.appendChild(actions);
 
