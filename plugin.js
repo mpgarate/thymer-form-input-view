@@ -1,20 +1,11 @@
 class Plugin extends AppPlugin {
   onLoad() {
     this.installRuntime();
-    this.ui.addCommandPaletteCommand({
-      label: "Install Form Input View in Collections",
-      icon: "ti-plus",
-      onSelected: () => this.installInAllCollections(true),
-    });
-
-    if (this.getConfiguration().custom?.auto_install !== false) {
-      setTimeout(() => this.installInAllCollections(false), 1000);
-      this.events.on("collection.created", () => setTimeout(() => this.installInAllCollections(false), 1000));
-    }
   }
 
   installRuntime() {
     const appPlugin = this;
+    const defaultViewLabel = "Form: $collection_name";
     const text = (value) => String(value || "").trim();
     const labelOf = (field) => field.label || field.name || field.id;
     const split = (value) => String(value || "").split(/[\n,]/).map((item) => item.trim()).filter(Boolean);
@@ -59,25 +50,17 @@ class Plugin extends AppPlugin {
       return value && typeof value === "object" && !Array.isArray(value) ? value : {};
     };
 
+    const resolveViewLabel = (collectionPlugin, options) => {
+      const label = text(options.viewLabel || options.view_label || defaultViewLabel);
+      return label.replace(/\$collection_name/g, collectionPlugin.getName());
+    };
+
     const findFormInputView = (collectionPlugin, options) => {
       const views = collectionPlugin.getConfiguration().views || [];
       const viewId = lc(options.viewId || options.view_id || "form_input");
-      const viewLabel = lc(resolveLabel(collectionPlugin, options));
-      return views.find((view) => lc(view.id) === viewId)
-        || views.find((view) => lc(view.label) === viewLabel && view.type === "custom")
-        || views.find((view) => lc(view.label) === viewLabel);
-    };
-
-    const resolveLabel = (collectionPlugin, options) => {
-      const template = options.viewLabel || options.view_label || "Create $collection_name";
-      const collectionName = collectionPlugin.getName ? collectionPlugin.getName() : collectionPlugin.getConfiguration().name;
-      return String(template)
-        .replaceAll("$collection_name", collectionName)
-        .replaceAll("${collection_name}", collectionName)
-        .replaceAll("{collection_name}", collectionName)
-        .replaceAll("$collectionName", collectionName)
-        .replaceAll("${collectionName}", collectionName)
-        .replaceAll("{collectionName}", collectionName);
+      const viewLabel = resolveViewLabel(collectionPlugin, options);
+      return views.find((view) => view.type === "custom" && lc(view.label) === lc(viewLabel))
+        || views.find((view) => view.type === "custom" && lc(view.id) === viewId);
     };
 
     const getFormFields = (collectionPlugin, options) => {
@@ -375,7 +358,7 @@ class Plugin extends AppPlugin {
         if (!collectionPlugin || !collectionPlugin.views || collectionPlugin.__thymerFormInputViewRegistered) return;
         collectionPlugin.__thymerFormInputViewRegistered = true;
         const formOptions = normalizeOptions(collectionPlugin, options);
-        collectionPlugin.views.register(resolveLabel(collectionPlugin, formOptions), (viewCtx) => ({
+        collectionPlugin.views.register(resolveViewLabel(collectionPlugin, formOptions), (viewCtx) => ({
           onLoad: () => render(collectionPlugin, viewCtx, formOptions),
           onRefresh: () => {},
           onPanelResize: () => {},
@@ -387,119 +370,5 @@ class Plugin extends AppPlugin {
         }));
       },
     };
-  }
-
-  getDefaultFormInputOptions() {
-    const custom = this.getConfiguration().custom || {};
-    return custom.formInputView || custom.form_input_view || {};
-  }
-
-  getBootstrapCode(options = null) {
-    const optionsLiteral = options ? JSON.stringify(options, null, 2) : "{}";
-    return `\n\n// THYMER_FORM_INPUT_VIEW_BOOTSTRAP_START\n(() => {\n  const formInputViewConfig = ${optionsLiteral};\n  const bootFormInputView = (plugin, attemptsLeft = 20) => {\n    const registry = window.ThymerFormInputView;\n    if (registry && typeof registry.bootstrap === "function") {\n      registry.bootstrap(plugin, formInputViewConfig);\n      return;\n    }\n    if (attemptsLeft > 0) setTimeout(() => bootFormInputView(plugin, attemptsLeft - 1), 100);\n  };\n\n  const originalOnLoad = Plugin.prototype.onLoad || function () {};\n  Plugin.prototype.onLoad = function (...args) {\n    const result = originalOnLoad.apply(this, args);\n    bootFormInputView(this);\n    return result;\n  };\n})();\n// THYMER_FORM_INPUT_VIEW_BOOTSTRAP_END\n`;
-  }
-
-  ensureFormInputViewConfig(config) {
-    const options = this.getDefaultFormInputOptions();
-    const viewId = options.viewId || options.view_id || "form_input";
-    const viewLabel = this.resolveViewLabel(config.name, options);
-    const viewIcon = options.viewIcon || options.view_icon || "ti-plus";
-    const legacyLabels = ["create", "form input"];
-    config.views = config.views || [];
-
-    const fallbackFields = (config.fields || []).filter((field) => {
-      return field.active !== false && !field.read_only;
-    }).map((field) => field.id);
-
-    const isTarget = (view) => view.type === "custom" && (view.id === viewId || view.label === viewLabel);
-    const isLegacy = (view) => view.type === "custom" && legacyLabels.includes(String(view.label || "").trim().toLowerCase());
-    const target = config.views.find(isTarget);
-    const createLegacy = config.views.find((view) => isLegacy(view) && String(view.label || "").trim().toLowerCase() === "create");
-    const firstLegacy = config.views.find(isLegacy);
-    const base = createLegacy || target || firstLegacy || {};
-    const fields = Array.isArray(base.field_ids) && base.field_ids.length ? base.field_ids : fallbackFields;
-    const insertAt = config.views.findIndex((view) => isTarget(view) || isLegacy(view));
-    const nextView = {
-      ...base,
-      id: viewId,
-      shown: true,
-      icon: viewIcon,
-      label: viewLabel,
-      description: base.description || "",
-      field_ids: fields,
-      type: "custom",
-      read_only: false,
-      group_by_field_id: base.group_by_field_id || null,
-      sort_dir: base.sort_dir || "desc",
-      sort_field_id: base.sort_field_id || "updated_at",
-      opts: base.opts || {},
-    };
-    const nextViews = config.views.filter((view) => !isTarget(view) && !isLegacy(view));
-    nextViews.splice(insertAt >= 0 ? insertAt : nextViews.length, 0, nextView);
-
-    const changed = JSON.stringify(config.views) !== JSON.stringify(nextViews);
-    config.views = nextViews;
-    return changed;
-  }
-
-  resolveViewLabel(collectionName, options) {
-    const template = options.viewLabel || options.view_label || "Create $collection_name";
-    return String(template)
-      .replaceAll("$collection_name", collectionName)
-      .replaceAll("${collection_name}", collectionName)
-      .replaceAll("{collection_name}", collectionName)
-      .replaceAll("$collectionName", collectionName)
-      .replaceAll("${collectionName}", collectionName)
-      .replaceAll("{collectionName}", collectionName);
-  }
-
-  ensureBootstrap(code) {
-    const bootstrap = this.getBootstrapCode();
-    if (!code || !code.trim()) return `class Plugin extends CollectionPlugin {\n  onLoad() {}\n}${bootstrap}`;
-    if (code.includes("THYMER_FORM_INPUT_VIEW_BOOTSTRAP_START")) return code;
-    if (code.includes("ThymerFormInputView") && code.includes(".bootstrap")) return code;
-    return `${code.replace(/\s+$/, "")}${bootstrap}`;
-  }
-
-  async installInAllCollections(showToast) {
-    try {
-      const collections = await this.data.getAllCollections();
-      let updated = 0;
-
-      for (const collection of collections) {
-        if (!collection || collection.isJournalPlugin?.()) continue;
-        if (typeof collection.getExistingCodeAndConfig !== "function" || typeof collection.savePlugin !== "function") continue;
-
-        const existing = collection.getExistingCodeAndConfig();
-        const config = structuredClone(existing.json || {});
-        const currentCode = existing.code || "";
-        const nextCode = this.ensureBootstrap(currentCode);
-        const changedConfig = this.ensureFormInputViewConfig(config);
-        const changedCode = nextCode !== currentCode;
-        if (!changedConfig && !changedCode) continue;
-
-        await collection.savePlugin(config, nextCode, existing.css || "");
-        updated++;
-      }
-
-      if (showToast) {
-        this.ui.addToaster({
-          title: "Form Input View installed",
-          message: updated ? `Updated ${updated} collection${updated === 1 ? "" : "s"}.` : "All collections are already configured.",
-          dismissible: true,
-          autoDestroyTime: 5000,
-        });
-      }
-    } catch (err) {
-      console.error("[Form Input View] install failed", err);
-      if (showToast) {
-        this.ui.addToaster({
-          title: "Form Input View install failed",
-          message: err && err.message ? err.message : String(err),
-          dismissible: true,
-          autoDestroyTime: 8000,
-        });
-      }
-    }
   }
 }

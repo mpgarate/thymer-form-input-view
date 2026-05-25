@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Added per-collection `viewLabel` configuration with `$collection_name` interpolation for custom form views.
+- Changed the default form-view label template to `Form: $collection_name`.
+
+## 0.4.0 - 2026-05-25
+
+- Registered `Form Input` as the stable custom view type for opted-in collections.
+- Removed automatic collection bootstrap and custom view configuration management.
+- Changed setup to manual per-collection view enablement.
+
 ## 0.3.0 - 2026-05-24
 
 - Changed default view label to `Create $collection_name`.

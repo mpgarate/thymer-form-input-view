@@ -18,11 +18,7 @@
     "sidebar": false
   },
   "custom": {
-    "auto_install": true,
     "formInputView": {
-      "viewId": "form_input",
-      "viewLabel": "Create $collection_name",
-      "viewIcon": "ti-plus",
       "submitLabel": "Create",
       "useViewFields": true,
       "allowInlineChoices": true,
